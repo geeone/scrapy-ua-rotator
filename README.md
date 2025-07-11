@@ -2,7 +2,7 @@
 # scrapy-ua-rotator
 
 [![PyPI](https://img.shields.io/pypi/v/scrapy-ua-rotator)](https://pypi.org/project/scrapy-ua-rotator/)
-[![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11%20|%203.12-blue)](https://pypi.org/project/scrapy-ua-rotator/)
+[![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-blue)](https://pypi.org/project/scrapy-ua-rotator/)
 [![License](https://img.shields.io/github/license/geeone/scrapy-ua-rotator)](LICENSE)
 
 A modern, pluggable User-Agent rotator middleware for the Scrapy framework.
@@ -19,7 +19,6 @@ Also supports per-proxy rotation and easy extensibility with custom providers.
 ## ✅ Requirements
 
 - Python 3.9+
-- `Scrapy >= 2.11.0`
 - `Faker >= 18.0.0`
 - `fake-useragent >= 1.5.0`
 
@@ -61,22 +60,20 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64)..."
 
 ## 🧩 Provider Details
 
-### 🔹 `FakeUserAgentProvider`
+### FakeUserAgentProvider
 
 ```python
 FAKE_USERAGENT_RANDOM_UA_TYPE = 'random'  # or 'chrome', 'firefox', etc.
 FAKEUSERAGENT_FALLBACK = 'Mozilla/5.0 (Android; Mobile; rv:40.0)'
 ```
 
-### 🔹 `FakerProvider`
+### FakerProvider
 
 ```python
 FAKER_RANDOM_UA_TYPE = 'chrome'  # or 'firefox', 'safari', etc.
 ```
 
-### 🔹 `FixedUserAgentProvider`
-
-Uses the value from:
+### FixedUserAgentProvider
 
 ```python
 USER_AGENT = "Mozilla/5.0 ..."
