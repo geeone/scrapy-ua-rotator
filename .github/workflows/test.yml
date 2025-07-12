@@ -30,7 +30,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=scrapy_ua_rotator tests/
+          pytest --cov=scrapy_ua_rotator --cov-report=xml tests/
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
