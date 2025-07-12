@@ -34,7 +34,8 @@ class FakeUserAgentProvider(BaseProvider):
 
     def __init__(self, settings):
         super().__init__(settings)
-        self._ua_type = settings.get('FAKE_USERAGENT_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
+        self._ua_type = settings.get(
+            'FAKE_USERAGENT_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
         fallback = settings.get('FAKEUSERAGENT_FALLBACK', '')
 
         if fake_useragent:
@@ -49,8 +50,23 @@ class FakeUserAgentProvider(BaseProvider):
 
     def get_random_ua(self):
         if not self._ua:
-            return self.settings.get('USER_AGENT', '')
-        return getattr(self._ua, self._ua_type)
+            return None  # Or return empty string / raise error if preferred
+
+        if self._ua_type:
+            # First, try attribute-based access (e.g., ua.chrome, ua.ff, ua.random)
+            try:
+                return getattr(self._ua, self._ua_type)
+            except AttributeError:
+                pass
+
+            # Second, try dict-style access (e.g., ua['Chrome Mobile iOS'])
+            try:
+                return self._ua[self._ua_type]
+            except (KeyError, TypeError):
+                pass
+
+        # Final fallback
+        return self._ua.random
 
 
 class FakerProvider(BaseProvider):

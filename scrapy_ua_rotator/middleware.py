@@ -60,10 +60,9 @@ class RetryUserAgentMiddleware(RetryMiddleware, RandomUserAgentBase):
         RetryMiddleware.__init__(self, crawler.settings)
         RandomUserAgentBase.__init__(self, crawler)
 
-        # Use instance-level retry exceptions if available (Scrapy ≥2.10),
-        # otherwise fall back to class-level (Scrapy <2.10)
-        self.EXCEPTIONS_TO_RETRY = getattr(
-            self, 'exceptions_to_retry', self.EXCEPTIONS_TO_RETRY)
+        # Scrapy 2.10+ dropped EXCEPTIONS_TO_RETRY in favor of instance attr
+        if hasattr(self, 'exceptions_to_retry'):
+            self.EXCEPTIONS_TO_RETRY = self.exceptions_to_retry
 
     @classmethod
     def from_crawler(cls, crawler):
