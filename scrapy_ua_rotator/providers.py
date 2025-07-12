@@ -44,9 +44,9 @@ class FakeUserAgentProvider(BaseProvider):
         if fake_useragent:
             try:
                 self._ua = fake_useragent.UserAgent(
-                    fallback=fallback,
                     os=self._ua_os,
-                    platforms=self._ua_platforms
+                    platforms=self._ua_platforms,
+                    **({'fallback': fallback} if fallback else {})
                 )
             except Exception:
                 logger.warning("Failed to init fake_useragent, fallback will be used")
