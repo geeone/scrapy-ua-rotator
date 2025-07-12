@@ -1,7 +1,11 @@
 import logging
+from typing import Optional, Any
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from scrapy.utils.response import response_status_message
 from scrapy.utils.misc import load_object
+from scrapy.crawler import Crawler
+from scrapy.http import Request, Response
+from scrapy.spiders import Spider
 
 logger = logging.getLogger(__name__)
 
@@ -10,53 +14,56 @@ FAKE_USERAGENT_PROVIDER_PATH = 'scrapy_ua_rotator.providers.FakeUserAgentProvide
 
 
 class RandomUserAgentBase:
-    def __init__(self, crawler):
-        self._ua_provider = self._get_provider(crawler)
-        self._per_proxy = crawler.settings.get('RANDOM_UA_PER_PROXY', False)
-        self._proxy2ua = {}
+    """Base class that provides User-Agent selection logic via configured providers."""
 
-    def _get_provider(self, crawler):
-        self.providers_paths = crawler.settings.get(
-            'FAKEUSERAGENT_PROVIDERS', None)
+    def __init__(self, crawler: Crawler):
+        self._ua_provider: Any = self._get_provider(crawler)
+        self._per_proxy: bool = crawler.settings.get('RANDOM_UA_PER_PROXY', False)
+        self._proxy2ua: dict[str, str] = {}
+
+    def _get_provider(self, crawler: Crawler) -> Any:
+        """Load the first available provider from settings or fall back to FixedUserAgentProvider."""
+        self.providers_paths = crawler.settings.get('FAKEUSERAGENT_PROVIDERS', None)
         if not self.providers_paths:
             self.providers_paths = [FAKE_USERAGENT_PROVIDER_PATH]
 
         for provider_path in self.providers_paths:
             try:
                 provider = load_object(provider_path)(crawler.settings)
-                logger.debug("Loaded User-Agent provider: %s", provider_path)
+                logger.debug(f"Loaded User-Agent provider: {provider_path}")
                 return provider
             except Exception as e:
-                logger.warning('Failed loading provider %s: %s',
-                               provider_path, e)
+                logger.warning(f"Failed loading provider {provider_path}: {e}")
 
         logger.info('Falling back to FixedUserAgentProvider')
         return load_object(FIXED_PROVIDER_PATH)(crawler.settings)
 
 
 class RandomUserAgentMiddleware(RandomUserAgentBase):
-    def __init__(self, crawler):
+    """Downloader middleware that injects User-Agent header into outgoing requests."""
+
+    def __init__(self, crawler: Crawler):
         super().__init__(crawler)
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> 'RandomUserAgentMiddleware':
         return cls(crawler)
 
-    def process_request(self, request, spider):
+    def process_request(self, request: Request, spider: Spider) -> None:
         if self._per_proxy:
             proxy = request.meta.get('proxy')
             if proxy not in self._proxy2ua:
                 self._proxy2ua[proxy] = self._ua_provider.get_random_ua()
-                logger.debug('Assigned UA %s to proxy %s',
-                             self._proxy2ua[proxy], proxy)
+                logger.debug(f"Assigned UA {self._proxy2ua[proxy]} to proxy {proxy}")
             request.headers.setdefault('User-Agent', self._proxy2ua[proxy])
         else:
-            request.headers.setdefault(
-                'User-Agent', self._ua_provider.get_random_ua())
+            request.headers.setdefault('User-Agent', self._ua_provider.get_random_ua())
 
 
 class RetryUserAgentMiddleware(RetryMiddleware, RandomUserAgentBase):
-    def __init__(self, crawler):
+    """Extends retry logic to rotate User-Agent on retry attempts."""
+
+    def __init__(self, crawler: Crawler):
         RetryMiddleware.__init__(self, crawler.settings)
         RandomUserAgentBase.__init__(self, crawler)
 
@@ -65,10 +72,10 @@ class RetryUserAgentMiddleware(RetryMiddleware, RandomUserAgentBase):
             self.EXCEPTIONS_TO_RETRY = self.exceptions_to_retry
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> 'RetryUserAgentMiddleware':
         return cls(crawler)
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request: Request, response: Response, spider: Spider) -> Response:
         if request.meta.get('dont_retry', False):
             return response
         if response.status in self.retry_http_codes:
@@ -77,8 +84,8 @@ class RetryUserAgentMiddleware(RetryMiddleware, RandomUserAgentBase):
             return self._retry(request, reason, spider) or response
         return response
 
-    def process_exception(self, request, exception, spider):
-        if isinstance(exception, self.EXCEPTIONS_TO_RETRY) \
-                and not request.meta.get('dont_retry', False):
+    def process_exception(self, request: Request, exception: Exception, spider: Spider) -> Optional[Response]:
+        if isinstance(exception, self.EXCEPTIONS_TO_RETRY) and not request.meta.get('dont_retry', False):
             request.headers['User-Agent'] = self._ua_provider.get_random_ua()
             return self._retry(request, exception, spider)
+        return None

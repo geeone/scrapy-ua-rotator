@@ -1,5 +1,7 @@
 import logging
 from abc import abstractmethod
+from typing import Optional, Union, List
+from scrapy.settings import Settings
 from faker import Faker
 
 try:
@@ -11,35 +13,45 @@ logger = logging.getLogger(__name__)
 
 
 class BaseProvider:
-    def __init__(self, settings):
-        self.settings = settings
-        self._ua_type = None
+    """Abstract base class for all User-Agent providers."""
+
+    def __init__(self, settings: Settings):
+        self.settings: Settings = settings
+        self._ua_type: Optional[str] = None
 
     @abstractmethod
-    def get_random_ua(self):
+    def get_random_ua(self) -> Optional[str]:
+        """Return a random user-agent string."""
         pass
 
 
 class FixedUserAgentProvider(BaseProvider):
-    def __init__(self, settings):
-        super().__init__(settings)
-        self._ua = settings.get('USER_AGENT', '')
+    """Returns the fixed USER_AGENT value from settings."""
 
-    def get_random_ua(self):
+    def __init__(self, settings: Settings):
+        super().__init__(settings)
+        self._ua: str = settings.get('USER_AGENT', '')
+
+    def get_random_ua(self) -> str:
         return self._ua
 
 
 class FakeUserAgentProvider(BaseProvider):
+    """
+    Uses `fake_useragent` to generate realistic UAs.
+    Supports filtering by UA type, OS, and platform.
+    """
+
     DEFAULT_UA_TYPE = 'random'
     DEFAULT_OS = None
     DEFAULT_PLATFORMS = None
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings):
         super().__init__(settings)
-        self._ua_type = settings.get('FAKE_USERAGENT_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
-        self._ua_os = settings.get('FAKE_USERAGENT_OS', self.DEFAULT_OS)
-        self._ua_platforms = settings.get('FAKE_USERAGENT_PLATFORMS', self.DEFAULT_PLATFORMS)
-        fallback = settings.get('FAKEUSERAGENT_FALLBACK', '')
+        self._ua_type: str = settings.get('FAKE_USERAGENT_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
+        self._ua_os: Optional[Union[str, List[str]]] = settings.get('FAKE_USERAGENT_OS', self.DEFAULT_OS)
+        self._ua_platforms: Optional[Union[str, List[str]]] = settings.get('FAKE_USERAGENT_PLATFORMS', self.DEFAULT_PLATFORMS)
+        fallback: str = settings.get('FAKEUSERAGENT_FALLBACK', '')
 
         if fake_useragent:
             try:
@@ -55,38 +67,38 @@ class FakeUserAgentProvider(BaseProvider):
             logger.warning("fake_useragent not installed")
             self._ua = None
 
-    def get_random_ua(self):
+    def get_random_ua(self) -> Optional[str]:
+        """Return user-agent string using attribute or dict-style access."""
         if not self._ua:
-            return None  # Or return empty string / raise error if preferred
+            return None
 
         if self._ua_type:
-            # First, try attribute-based access (e.g., ua.chrome, ua.ff, ua.random)
             try:
                 return getattr(self._ua, self._ua_type)
             except AttributeError:
                 pass
 
-            # Second, try dict-style access (e.g., ua['Chrome Mobile iOS'])
             try:
                 return self._ua[self._ua_type]
             except (KeyError, TypeError):
                 pass
 
-        # Final fallback
         return self._ua.random
 
 
 class FakerProvider(BaseProvider):
+    """Generates synthetic user-agents using the `faker` library."""
+
     DEFAULT_UA_TYPE = 'user_agent'
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings):
         super().__init__(settings)
         self._ua = Faker()
-        self._ua_type = settings.get('FAKER_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
+        self._ua_type: str = settings.get('FAKER_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
 
-    def get_random_ua(self):
+    def get_random_ua(self) -> str:
         try:
             return getattr(self._ua, self._ua_type)()
         except AttributeError:
-            logger.debug("Couldn't retrieve '%s', using default '%s'", self._ua_type, self.DEFAULT_UA_TYPE)
+            logger.debug(f"Couldn't retrieve '{self._ua_type}', using default '{self.DEFAULT_UA_TYPE}'")
             return getattr(self._ua, self.DEFAULT_UA_TYPE)()
