@@ -4,6 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/scrapy-ua-rotator)](https://pypi.org/project/scrapy-ua-rotator/)
 [![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-blue)](https://pypi.org/project/scrapy-ua-rotator/)
 [![License](https://img.shields.io/github/license/geeone/scrapy-ua-rotator)](LICENSE)
+[![Build Status](https://github.com/geeone/scrapy-ua-rotator/actions/workflows/build.yml/badge.svg)](https://github.com/geeone/scrapy-ua-rotator/actions/workflows/build.yml)
 
 A modern, pluggable User-Agent rotator middleware for the Scrapy framework.
 
