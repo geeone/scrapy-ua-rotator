@@ -31,16 +31,23 @@ class FixedUserAgentProvider(BaseProvider):
 
 class FakeUserAgentProvider(BaseProvider):
     DEFAULT_UA_TYPE = 'random'
+    DEFAULT_OS = None
+    DEFAULT_PLATFORMS = None
 
     def __init__(self, settings):
         super().__init__(settings)
-        self._ua_type = settings.get(
-            'FAKE_USERAGENT_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
+        self._ua_type = settings.get('FAKE_USERAGENT_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
+        self._ua_os = settings.get('FAKE_USERAGENT_OS', self.DEFAULT_OS)
+        self._ua_platforms = settings.get('FAKE_USERAGENT_PLATFORMS', self.DEFAULT_PLATFORMS)
         fallback = settings.get('FAKEUSERAGENT_FALLBACK', '')
 
         if fake_useragent:
             try:
-                self._ua = fake_useragent.UserAgent(fallback=fallback)
+                self._ua = fake_useragent.UserAgent(
+                    fallback=fallback,
+                    os=self._ua_os,
+                    platforms=self._ua_platforms
+                )
             except Exception:
                 logger.warning("Failed to init fake_useragent, fallback will be used")
                 self._ua = None
