@@ -1,8 +1,10 @@
+from abc import ABC, abstractmethod
 import logging
-from abc import abstractmethod
 from typing import Optional, Union, List
-from scrapy.settings import Settings
+
 from faker import Faker
+from scrapy.settings import Settings
+
 
 try:
     import fake_useragent
@@ -12,7 +14,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class BaseProvider:
+class BaseProvider(ABC):
     """Abstract base class for all User-Agent providers."""
 
     def __init__(self, settings: Settings):
@@ -22,7 +24,7 @@ class BaseProvider:
     @abstractmethod
     def get_random_ua(self) -> Optional[str]:
         """Return a random user-agent string."""
-        pass
+        raise NotImplementedError
 
 
 class FixedUserAgentProvider(BaseProvider):
@@ -48,9 +50,12 @@ class FakeUserAgentProvider(BaseProvider):
 
     def __init__(self, settings: Settings):
         super().__init__(settings)
-        self._ua_type: str = settings.get('FAKE_USERAGENT_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
-        self._ua_os: Optional[Union[str, List[str]]] = settings.get('FAKE_USERAGENT_OS', self.DEFAULT_OS)
-        self._ua_platforms: Optional[Union[str, List[str]]] = settings.get('FAKE_USERAGENT_PLATFORMS', self.DEFAULT_PLATFORMS)
+        self._ua_type: str = settings.get(
+            'FAKE_USERAGENT_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
+        self._ua_os: Optional[Union[str, List[str]]] = settings.get(
+            'FAKE_USERAGENT_OS', self.DEFAULT_OS)
+        self._ua_platforms: Optional[Union[str, List[str]]] = settings.get(
+            'FAKEUSERAGENT_PLATFORMS', self.DEFAULT_PLATFORMS)
         fallback: str = settings.get('FAKEUSERAGENT_FALLBACK', '')
 
         if fake_useragent:
@@ -61,7 +66,8 @@ class FakeUserAgentProvider(BaseProvider):
                     **({'fallback': fallback} if fallback else {})
                 )
             except Exception:
-                logger.warning("Failed to init fake_useragent, fallback will be used")
+                logger.warning(
+                    "Failed to init fake_useragent, fallback will be used")
                 self._ua = None
         else:
             logger.warning("fake_useragent not installed")
@@ -94,11 +100,13 @@ class FakerProvider(BaseProvider):
     def __init__(self, settings: Settings):
         super().__init__(settings)
         self._ua = Faker()
-        self._ua_type: str = settings.get('FAKER_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
+        self._ua_type: str = settings.get(
+            'FAKER_RANDOM_UA_TYPE', self.DEFAULT_UA_TYPE)
 
     def get_random_ua(self) -> str:
         try:
             return getattr(self._ua, self._ua_type)()
         except AttributeError:
-            logger.debug(f"Couldn't retrieve '{self._ua_type}', using default '{self.DEFAULT_UA_TYPE}'")
+            logger.debug(
+                f"Couldn't retrieve '{self._ua_type}', using default '{self.DEFAULT_UA_TYPE}'")
             return getattr(self._ua, self.DEFAULT_UA_TYPE)()

@@ -1,11 +1,13 @@
 import logging
 from typing import Optional, Any
-from scrapy.downloadermiddlewares.retry import RetryMiddleware
-from scrapy.utils.response import response_status_message
-from scrapy.utils.misc import load_object
+
 from scrapy.crawler import Crawler
+from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from scrapy.http import Request, Response
 from scrapy.spiders import Spider
+from scrapy.utils.misc import load_object
+from scrapy.utils.response import response_status_message
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +20,14 @@ class RandomUserAgentBase:
 
     def __init__(self, crawler: Crawler):
         self._ua_provider: Any = self._get_provider(crawler)
-        self._per_proxy: bool = crawler.settings.get('RANDOM_UA_PER_PROXY', False)
+        self._per_proxy: bool = crawler.settings.get(
+            'RANDOM_UA_PER_PROXY', False)
         self._proxy2ua: dict[str, str] = {}
 
     def _get_provider(self, crawler: Crawler) -> Any:
         """Load the first available provider from settings or fall back to FixedUserAgentProvider."""
-        self.providers_paths = crawler.settings.get('FAKEUSERAGENT_PROVIDERS', None)
+        self.providers_paths = crawler.settings.get(
+            'FAKEUSERAGENT_PROVIDERS', None)
         if not self.providers_paths:
             self.providers_paths = [FAKE_USERAGENT_PROVIDER_PATH]
 
@@ -54,10 +58,12 @@ class RandomUserAgentMiddleware(RandomUserAgentBase):
             proxy = request.meta.get('proxy')
             if proxy not in self._proxy2ua:
                 self._proxy2ua[proxy] = self._ua_provider.get_random_ua()
-                logger.debug(f"Assigned UA {self._proxy2ua[proxy]} to proxy {proxy}")
+                logger.debug(
+                    f"Assigned UA {self._proxy2ua[proxy]} to proxy {proxy}")
             request.headers.setdefault('User-Agent', self._proxy2ua[proxy])
         else:
-            request.headers.setdefault('User-Agent', self._ua_provider.get_random_ua())
+            request.headers.setdefault(
+                'User-Agent', self._ua_provider.get_random_ua())
 
 
 class RetryUserAgentMiddleware(RetryMiddleware, RandomUserAgentBase):
