@@ -16,11 +16,13 @@ Also supports per-proxy rotation and easy extensibility with custom providers.
 
 ---
 
-## ✅ Requirements
+## 📋 Requirements
 
 - Python 3.9+
-- `Faker >= 18.0.0`
-- `fake-useragent >= 1.5.0`
+- `Faker >= 36.0.0`
+- `fake-useragent >= 2.0.0`
+
+> ✅ **Tested with**: Scrapy 2.9, 2.10, 2.11, and 2.12  
 
 ---
 
