@@ -19,8 +19,8 @@ Also supports per-proxy rotation and easy extensibility with custom providers.
 ## 📋 Requirements
 
 - Python 3.9+
-- `Faker >= 36.0.0`
-- `fake-useragent >= 2.0.0`
+- `Faker >= 18.0.0`
+- `fake-useragent >= 1.5.0`
 
 > ✅ **Tested with**: Scrapy 2.9, 2.10, 2.11, and 2.12  
 
@@ -41,6 +41,7 @@ Disable Scrapy’s default middleware and enable ours:
 ```python
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
     'scrapy_ua_rotator.middleware.RandomUserAgentMiddleware': 400,
     'scrapy_ua_rotator.middleware.RetryUserAgentMiddleware': 550,
 }
@@ -50,11 +51,12 @@ Recommended provider order:
 
 ```python
 FAKEUSERAGENT_PROVIDERS = [
-    'scrapy_ua_rotator.providers.FakeUserAgentProvider',
-    'scrapy_ua_rotator.providers.FakerProvider',
-    'scrapy_ua_rotator.providers.FixedUserAgentProvider',
+    'scrapy_ua_rotator.providers.FakeUserAgentProvider',  # Primary provider using the fake-useragent library
+    'scrapy_ua_rotator.providers.FakerProvider',          # Fallback provider that generates synthetic UAs via Faker
+    'scrapy_ua_rotator.providers.FixedUserAgentProvider', # Final fallback: uses the static USER_AGENT setting
 ]
 
+# Static user-agent string to be used if all providers fail to return a valid value
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64)..."
 ```
 
@@ -64,18 +66,32 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64)..."
 
 ### FakeUserAgentProvider
 
+Assigns a new user-agent using [`fake-useragent`](https://github.com/fake-useragent/fake-useragent).  
+Supports fine-tuned filtering via:
+
 ```python
-FAKE_USERAGENT_RANDOM_UA_TYPE = 'random'  # or 'chrome', 'firefox', etc.
-FAKEUSERAGENT_FALLBACK = 'Mozilla/5.0 (Android; Mobile; rv:40.0)'
+FAKE_USERAGENT_RANDOM_UA_TYPE = 'Chrome Mobile iOS'   # str; browser to prioritize (default: 'random')
+FAKEUSERAGENT_OS = ['Linux']                          # str or list[str]; OS filter (default: None — all OSes)
+FAKEUSERAGENT_PLATFORMS = ['mobile']                  # str or list[str]; platform filter (default: None — all platforms)
+FAKEUSERAGENT_FALLBACK = 'Mozilla/5.0 (...)'          # str; fallback UA string (default: internal fallback)
 ```
 
+> 💡 **Note:** See [docs](https://github.com/fake-useragent/fake-useragent/blob/main/README.md) for supported options and advanced usage.
+
 ### FakerProvider
+
+Uses [`Faker`](https://faker.readthedocs.io/en/stable/providers/faker.providers.user_agent.html) to generate synthetic UA strings.
 
 ```python
 FAKER_RANDOM_UA_TYPE = 'chrome'  # or 'firefox', 'safari', etc.
 ```
 
+> 💡 **Note:** See [docs](https://github.com/joke2k/faker/blob/master/README.rst) for supported options and advanced usage.
+
 ### FixedUserAgentProvider
+
+Simply uses the provided `USER_AGENT` setting without rotation.  
+Useful as a fallback if other providers fail.
 
 ```python
 USER_AGENT = "Mozilla/5.0 ..."
