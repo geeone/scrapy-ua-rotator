@@ -139,6 +139,13 @@ Just inherit from `BaseProvider` and implement `get_random_ua()`.
 
 ---
 
+## 🤝 Contributing
+
+Contributions, suggestions, and issues are welcome!  
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
 ## 📄 License
 
 MIT © [Sergei Denisenko](https://github.com/geeone)  
