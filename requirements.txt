@@ -1,0 +1,2 @@
+Faker>=36.0.0
+fake-useragent>=2.0.0
