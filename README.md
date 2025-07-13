@@ -1,4 +1,5 @@
 
+
 # scrapy-ua-rotator
 
 [![PyPI](https://img.shields.io/pypi/v/scrapy-ua-rotator)](https://pypi.org/project/scrapy-ua-rotator/)
@@ -52,7 +53,7 @@ DOWNLOADER_MIDDLEWARES = {
 Recommended provider order:
 
 ```python
-FAKEUSERAGENT_PROVIDERS = [
+USERAGENT_PROVIDERS = [
     'scrapy_ua_rotator.providers.FakeUserAgentProvider',  # Primary provider using the fake-useragent library
     'scrapy_ua_rotator.providers.FakerProvider',          # Fallback provider that generates synthetic UAs via Faker
     'scrapy_ua_rotator.providers.FixedUserAgentProvider', # Final fallback: uses the static USER_AGENT setting
@@ -72,10 +73,10 @@ Assigns a new user-agent using [`fake-useragent`](https://github.com/fake-userag
 Supports fine-tuned filtering via:
 
 ```python
-FAKE_USERAGENT_RANDOM_UA_TYPE = 'Chrome Mobile iOS'   # str; browser to prioritize (default: 'random')
-FAKEUSERAGENT_OS = ['Linux']                          # str or list[str]; OS filter (default: None — all OSes)
-FAKEUSERAGENT_PLATFORMS = ['mobile']                  # str or list[str]; platform filter (default: None — all platforms)
-FAKEUSERAGENT_FALLBACK = 'Mozilla/5.0 (...)'          # str; fallback UA string (default: internal fallback)
+FAKE_USERAGENT_UA_TYPE = 'Chrome Mobile iOS'           # str; browser to prioritize (default: 'random')
+FAKE_USERAGENT_OS = ['Linux']                          # str or list[str]; OS filter (default: None — all OSes)
+FAKE_USERAGENT_PLATFORMS = ['mobile']                  # str or list[str]; platform filter (default: None — all platforms)
+FAKE_USERAGENT_FALLBACK = 'Mozilla/5.0 (...)'          # str; fallback UA string (default: internal fallback)
 ```
 
 > 💡 **Note:** See [docs](https://github.com/fake-useragent/fake-useragent/blob/main/README.md) for supported options and advanced usage.
@@ -85,10 +86,10 @@ FAKEUSERAGENT_FALLBACK = 'Mozilla/5.0 (...)'          # str; fallback UA string 
 Uses [`Faker`](https://faker.readthedocs.io/en/stable/providers/faker.providers.user_agent.html) to generate synthetic UA strings.
 
 ```python
-FAKER_RANDOM_UA_TYPE = 'chrome'  # or 'firefox', 'safari', etc.
+FAKER_UA_TYPE = 'chrome'  # or 'firefox', 'safari', etc. (default: 'user_agent' — random web browser)
 ```
 
-> 💡 **Note:** See [docs](https://github.com/joke2k/faker/blob/master/README.rst) for supported options and advanced usage.
+> 💡 **Note:** See [docs](https://faker.readthedocs.io/en/stable/providers/faker.providers.user_agent.html) for supported options and advanced usage.
 
 ### FixedUserAgentProvider
 
@@ -129,7 +130,7 @@ def parse(self, response):
 Add your own class:
 
 ```python
-FAKEUSERAGENT_PROVIDERS = [
+USERAGENT_PROVIDERS = [
     'your_project.providers.MyCustomProvider',
     ...
 ]

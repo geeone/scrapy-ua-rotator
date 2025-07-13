@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Build Status (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
 
     strategy:

@@ -26,10 +26,19 @@ class RandomUserAgentBase:
 
     def _get_provider(self, crawler: Crawler) -> Any:
         """Load the first available provider from settings or fall back to FixedUserAgentProvider."""
-        self.providers_paths = crawler.settings.get(
-            'FAKEUSERAGENT_PROVIDERS', None)
-        if not self.providers_paths:
+
+        self.providers_paths = (
+            crawler.settings.get('USERAGENT_PROVIDERS')
+            or crawler.settings.get('FAKEUSERAGENT_PROVIDERS')
+        )
+
+        if self.providers_paths is None:
             self.providers_paths = [FAKE_USERAGENT_PROVIDER_PATH]
+        elif 'FAKEUSERAGENT_PROVIDERS' in crawler.settings.attributes:
+            logger.warning(
+                "Setting 'FAKEUSERAGENT_PROVIDERS' is deprecated. "
+                "Use 'USERAGENT_PROVIDERS' instead."
+            )
 
         for provider_path in self.providers_paths:
             try:

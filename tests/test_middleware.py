@@ -114,7 +114,7 @@ def test_assigns_ua_per_proxy(monkeypatch, dummy_request):
 def test_provider_fallback_on_invalid_path(monkeypatch):
     class DummyCrawler:
         settings = Settings(
-            {'FAKEUSERAGENT_PROVIDERS': ['invalid.module.Provider']})
+            {'USERAGENT_PROVIDERS': ['invalid.module.Provider']})
         stats = Mock()
 
     mw = RandomUserAgentMiddleware.from_crawler(DummyCrawler())
@@ -157,7 +157,7 @@ def test_exception_not_retry(monkey_provider):
 
 def test_multiple_provider_failures(monkeypatch):
     class DummyCrawler:
-        settings = Settings({'FAKEUSERAGENT_PROVIDERS': [
+        settings = Settings({'USERAGENT_PROVIDERS': [
                             'invalid.path1', 'invalid.path2']})
         stats = Mock()
 
@@ -174,7 +174,7 @@ def test_valid_provider_load(monkeypatch):
         "scrapy_ua_rotator.middleware.load_object", lambda path: DummyProvider)
 
     class DummyCrawler:
-        settings = Settings({'FAKEUSERAGENT_PROVIDERS': [
+        settings = Settings({'USERAGENT_PROVIDERS': [
                             'scrapy_ua_rotator.providers.FixedUserAgentProvider']})
         stats = Mock()
 
@@ -251,3 +251,15 @@ def test_sets_user_agent_with_no_proxy_and_no_header(monkey_provider):
 
     mw.process_request(request, DummySpider("dummy"))
     assert request.headers.get("User-Agent").decode() == "Dummy-UA"
+
+
+def test_deprecated_provider_setting_warning(monkeypatch, caplog):
+    class DummyCrawler:
+        settings = Settings({'FAKEUSERAGENT_PROVIDERS': [
+                            'scrapy_ua_rotator.providers.FixedUserAgentProvider']})
+        stats = Mock()
+
+    caplog.set_level("WARNING")
+    RandomUserAgentMiddleware.from_crawler(DummyCrawler())
+
+    assert any("deprecated" in msg for msg in caplog.messages)
