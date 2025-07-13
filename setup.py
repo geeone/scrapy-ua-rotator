@@ -13,7 +13,7 @@ with open(os.path.join(path, "README.md"), "r", encoding="utf-8") as f:
 
 setup(
     name='scrapy-ua-rotator',
-    version='1.0.0',
+    version='1.0.1',
     author='Sergei Denisenko',
     author_email='sergei.denisenko@ieee.org',
     description='Flexible and modern User-Agent rotator middleware for Scrapy, supporting Faker, fake-useragent, and custom providers.',

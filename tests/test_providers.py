@@ -24,14 +24,14 @@ def test_faker_provider_default():
 
 
 def test_faker_provider_with_type():
-    settings = Settings({"FAKER_RANDOM_UA_TYPE": "chrome"})
+    settings = Settings({"FAKER_UA_TYPE": "chrome"})
     provider = FakerProvider(settings)
     ua = provider.get_random_ua()
     assert "Chrome" in ua or "Mozilla" in ua
 
 
 def test_faker_provider_invalid_type():
-    settings = Settings({"FAKER_RANDOM_UA_TYPE": "nonexistent"})
+    settings = Settings({"FAKER_UA_TYPE": "nonexistent"})
     provider = FakerProvider(settings)
     ua = provider.get_random_ua()
     assert isinstance(ua, str)
@@ -44,9 +44,9 @@ def test_fake_useragent_provider(monkeypatch):
         pytest.skip("fake-useragent is not installed")
 
     settings = Settings({
-        "FAKE_USERAGENT_RANDOM_UA_TYPE": "chrome",
-        "FAKEUSERAGENT_OS": ["Linux"],
-        "FAKEUSERAGENT_PLATFORMS": ["desktop"]
+        "FAKE_USERAGENT_UA_TYPE": "chrome",
+        "FAKE_USERAGENT_OS": ["Linux"],
+        "FAKE_USERAGENT_PLATFORMS": ["desktop"]
     })
 
     provider = FakeUserAgentProvider(settings)
@@ -62,7 +62,7 @@ def test_fake_useragent_dict_and_attr(monkeypatch):
         pytest.skip("fake-useragent is not installed")
 
     settings = Settings({
-        "FAKE_USERAGENT_RANDOM_UA_TYPE": "Chrome Mobile iOS",
+        "FAKE_USERAGENT_UA_TYPE": "Chrome Mobile iOS",
     })
     provider = FakeUserAgentProvider(settings)
     assert isinstance(provider.get_random_ua(), str)
@@ -76,7 +76,7 @@ def test_fake_useragent_provider_invalid_type(monkeypatch):
     monkeypatch.setattr("scrapy_ua_rotator.providers.fake_useragent", type("mod", (), {
         "UserAgent": lambda **kwargs: DummyUA()
     }))
-    settings = Settings({"FAKE_USERAGENT_RANDOM_UA_TYPE": "nonexistent"})
+    settings = Settings({"FAKE_USERAGENT_UA_TYPE": "nonexistent"})
     provider = FakeUserAgentProvider(settings)
     assert provider.get_random_ua() is None
 
